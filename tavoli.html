@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trova il tuo tavolo - Michele &amp; Monica</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#000; color:#fff; min-height:100vh;
+    font-family:"Helvetica Neue", Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    padding:34px 18px 60px;
+  }
+  .logo { color:#e50914; font-weight:800; font-size:30px; letter-spacing:1px; text-decoration:none; }
+  h1 { font-size:34px; font-weight:700; margin-top:30px; text-align:center; }
+  .sub { color:#b3b3b3; margin-top:8px; font-size:15px; text-align:center; }
+
+  .searchbox { display:flex; gap:10px; margin-top:32px; width:100%; max-width:520px; }
+  .searchbox input { flex:1; padding:16px 18px; font-size:17px; border:none; border-radius:6px; background:#2a2a2a; color:#fff; outline:none; }
+  .searchbox input::placeholder { color:#8a8a8a; }
+  .searchbox button { background:#e50914; color:#fff; border:none; border-radius:6px; padding:0 26px; font-size:17px; font-weight:700; cursor:pointer; }
+
+  #result { width:100%; max-width:760px; margin-top:32px; }
+  .card { background:#181818; border-radius:12px; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,.6); }
+  .poster { width:100%; aspect-ratio:16/9; background:#111; position:relative; }
+  .poster img { width:100%; height:100%; object-fit:cover; display:block; position:relative; z-index:1; }
+  .poster .fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; font-size:34px; font-weight:800; background:linear-gradient(135deg,#3a1c71,#b91d3a,#e50914); z-index:0; }
+  .card .body { padding:22px 24px 26px; }
+  .card .guest { font-size:20px; }
+  .card .lead { color:#b3b3b3; font-size:14px; margin-top:14px; text-transform:uppercase; letter-spacing:1px; }
+  .card .film { font-size:30px; font-weight:800; margin-top:4px; }
+  .card .badge { display:inline-block; margin-top:14px; background:#e50914; color:#fff; font-size:13px; font-weight:700; padding:5px 12px; border-radius:4px; }
+  .msg { text-align:center; color:#e5e5e5; font-size:17px; line-height:1.6; padding:22px; }
+  .picklist { display:flex; flex-direction:column; gap:8px; }
+  .picklist .p { background:#222; border:none; color:#fff; text-align:left; padding:15px 18px; border-radius:6px; font-size:16px; cursor:pointer; }
+  .picklist .p small { color:#b3b3b3; }
+  .picklist .head { color:#b3b3b3; font-size:14px; margin-bottom:6px; }
+  .backhome { margin-top:26px; }
+  .backhome a { color:#8a8a8a; font-size:13px; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<a class="logo" href="index.html">NETFLIX</a>
+<h1>Trova il tuo tavolo</h1>
+<div class="sub">Michele &amp; Monica &middot; 15 Maggio 2027</div>
+
+<div class="searchbox">
+  <input id="q" type="text" placeholder="Scrivi il tuo nome e cognome..." autocomplete="off">
+  <button id="go">Cerca</button>
+</div>
+
+<div id="result"></div>
+<div class="backhome"><a href="index.html">&larr; Torna alla home</a></div>
+
+<script>
+const TABLES = [
+  { n:"01", film:"Encanto", guests:["Francesca Serpa","Giuliana Verrone","Sabina Cancellara","Letizia Lambertini","Domenico Lambertini","Enrico Benitez","Enrique Benitez","Jacopo Cruz","Gina Garbich","Dalmiro Cruz","Marvin Cruz"] },
+  { n:"02", film:"Fast Five", guests:["Alfred Cruz","Camilla Cruz Ganuza","Monica Ganuza","Victoria Cruz Ganuza","Victor Manuel Ganuza","Rosario Benitez","Gloria Tajada","Amilcar Edgar Ganuza","Edgar Ganuza","Sara Cruz Ganuza","Abuela Jimenez"] },
+  { n:"03", film:"La bella e la bestia", note:"Tavolo degli Sposi", guests:["Michele Linardi","Monica Jimenez"] },
+  { n:"04", film:"Il Gladiatore", guests:["Eliseo Leiva Urbina","Milexa Rivas","Alejandrito Rivas","Andreita Perez","Amica Milexa Rivas","Enrique Rivas","Berti Rivas","Santa Antonia Sapienza","Luigi Linardi"] },
+  { n:"05", film:"Il Signore degli Anelli - Le due torri", guests:["Manuel Micozzi","Beatrice Micozzi","Martina Micozzi","Vittoria Jora","Oxana Jora","Signora Gubinelli","Matteo Gubinelli","Gian Luca Mazzocchi","Michela Mazzocchi"] },
+  { n:"06", film:"Campeonex", guests:["Bouki Novia Javier Soria","Javier Soria","Alex Torres","Paco Soria","Maria del Mar Sapienza","Sandra Soria","Novio Sandra Soria","Laritza Yanez","Ana Lazo","Esther Pietrafusa","Nicola Pietrafusa"] },
+  { n:"07", film:"Campeones", guests:["Jeremy Sapienza","Roberto Grillo","Sergio Sapienza","Andrea Torres","Josè David Sapienza","Enzo Sapienza","Yaiza Sepulcre","Federica Sapienza","Matteo Sapienza","Alfredo Linardi","Salvatore Bertell"] },
+  { n:"08", film:"Mrs. Doubtfire", guests:["Matilde Scarimboli","Susanna Servi","Tommaso Scarimboli","Nicola Scarimboli","Rosaria Linardi","Franco Miceli","Maria Linardi","Daniela Linardi","Fausto Linardi"] },
+  { n:"09", film:"Sicilia Express", guests:["Giovanni Barletta","Rosalia Zappalà","Massimo Sapienza","Maria Josè Sanchez","Juan Torres","Giovanni Sapienza","Antonia Domene","Piera Grillo","Carmelo Grillo","Claudio Sapienza","Anna Maria Barletta"] },
+  { n:"10", film:"Coco", guests:["Luis Alvarado","Karla Alvarado","Gabriel Jimenez","Mauricio Jimenez","Elsa Benitez","Darlyn Benitez","Hazel Alvarado","Denis Alvarado","Daniel Alvarado","Cleo Benitez","Bebe Alvarado-benitez cleo"] },
+  { n:"11", film:"Boris - Il Film", guests:["Kieran Haward","Annalisa Bearzatto","Annalisa Bonomo","Marco Fraolini","Daniele Donnarumma","Alessandra Chirulli","Marco Dionisi","Moglie Marco Dionisi","Fidanzata Edoardo Dionisi","Edoardo Dionisi","Alessandro Dionisi"] },
+  { n:"12", film:"Sister Act", guests:["Moglie Sassi","Giuseppe Sassi","Gennaro Castaldo","Moglie Castaldo","Giovanni Carosati","Moglie Carosati","Moglie Soldini","Stefano Soldini","Gianluca De Santis","Moglie De Santis","Marito Fiori","Paola Fiori"] },
+  { n:"13", film:"Notte prima degli esami", guests:["Mariadele Borrelli","Marco Cacciatori","Vittoria Cacciatori","Silvia Sig.ra Cacciatori","Andrea Alessandro","Valentina Russo","Giulia Pascali","Pierre Pascali","Sofia Alessandro"] },
+  { n:"14", film:"The Accountant", guests:["Caterina Marinucci","Maurizio Bonanni","Claudia Fioretti","Riccardo Rosignoli","Manuele Luchetta","Compagno Vitale","Nadia Vitale","Erminia Matteucci","Tiziana Funcello","Massimo D'Alessandro","Maria Teresa Pilloni"] },
+  { n:"15", film:"Tifosi", guests:["Lavinia Di Santi","Guido Di Santi","Damiano Di Santi","Melissa Di Santi","Gaetano Cutaia","Arianna Carletti","Danilo Morisco","Cristina Yohou","Simone Bartoloni","Luca Romaniello","Paola Tognetti"] },
+  { n:"16", film:"Ready Player One", guests:["Daniel Conti","Compagna Tortella","Anton Tortella","Compagna Tietto","Luca Tietto","Lorenzo Sassara","Francesco Proietti","Compagna Proietti"] },
+  { n:"17", film:"Gli Incredibili", guests:["Flavia Tunno","Simone Campanelli","Alessio Campanelli","Filippo Campanelli","Leonardo Paciotti","Francesca Gherardi","Gabriele Paciotti","Simone Paciotti","Edoardo Paciotti","Andrea Campanelli"] },
+  { n:"18", film:"Gran Torino", guests:["Gloria De Benitez","Edwin Benitez","Alba Bottai","Ivano Baldini","Giorgio Baldini","Rossella Baldini","Moglie Renato Garage","Renato Garage","Alessandro Garage","Sig.ra Alessandro Garage"] }
+];
+
+const GUESTS = [];
+TABLES.forEach(t => t.guests.forEach(name => GUESTS.push({name, table:t})));
+const EXT = ["jpg","jpeg","png","webp","JPG","PNG"];
+
+function norm(s){
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+const res = document.getElementById("result");
+
+function search(){
+  const raw = document.getElementById("q").value;
+  const q = norm(raw);
+  res.innerHTML = "";
+  if (q.length < 2) { showMsg("Scrivi il tuo nome per cercare il tavolo."); return; }
+  const words = q.split(" ");
+  const matches = GUESTS.filter(g => { const nn = norm(g.name); return words.every(w => nn.includes(w)); });
+  if (matches.length === 0) {
+    showMsg("Non abbiamo trovato <b>\""+escapeHtml(raw)+"\"</b>.<br>Prova solo con il cognome, o controlla l'ortografia.");
+  } else if (matches.length === 1) {
+    showTable(matches[0]);
+  } else {
+    showPicker(matches);
+  }
+}
+
+function showMsg(html){ res.innerHTML = '<div class="card"><div class="msg">'+html+'</div></div>'; }
+
+function showPicker(list){
+  let h = '<div class="card"><div class="body picklist"><div class="head">Ci sono pi&ugrave; persone con questo nome, scegli te:</div>';
+  list.forEach((g,i) => { h += '<button class="p" data-i="'+i+'">'+escapeHtml(g.name)+' <small>&middot; tavolo '+escapeHtml(g.table.film)+'</small></button>'; });
+  h += '</div></div>';
+  res.innerHTML = h;
+  res.querySelectorAll(".p").forEach(b => b.onclick = () => showTable(list[b.dataset.i]));
+}
+
+function showTable(g){
+  const t = g.table;
+  const pid = "p"+Math.random().toString(36).slice(2);
+  let h = '<div class="card"><div class="poster">';
+  h += '<div class="fallback">'+escapeHtml(t.film)+'</div>';
+  h += '<img id="'+pid+'" alt="" style="display:none">';
+  h += '</div><div class="body">';
+  h += '<div class="guest">Ciao <b>'+escapeHtml(g.name)+'</b></div>';
+  h += '<div class="lead">Il tuo tavolo</div>';
+  h += '<div class="film">'+escapeHtml(t.film)+'</div>';
+  if (t.note) h += '<div class="badge">'+escapeHtml(t.note)+'</div>';
+  h += '</div></div>';
+  res.innerHTML = h;
+  const img = document.getElementById(pid);
+  let e = 0;
+  img.onload = () => { img.style.display = "block"; };
+  img.onerror = () => { e++; if (e < EXT.length) img.src = "posters/"+t.n+"."+EXT[e]; };
+  img.src = "posters/"+t.n+"."+EXT[0];
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+document.getElementById("go").onclick = search;
+document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+</script>
+</body>
+</html>
