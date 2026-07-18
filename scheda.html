@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scheda - Michele &amp; Monica</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:#141414; color:#fff; font-family:"Helvetica Neue", Arial, sans-serif; }
+  .top { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; }
+  .logo { color:#e50914; font-weight:800; font-size:26px; letter-spacing:1px; text-decoration:none; }
+  .lang { background:#141414; color:#fff; border:1px solid #6d6d6e; border-radius:4px; padding:7px 9px; font-size:14px; }
+
+  .wrap { max-width:900px; margin:0 auto; padding:0 20px 60px; }
+
+  .hero { position:relative; width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; background:#222; }
+  .hero img { width:100%; height:100%; object-fit:cover; display:block; }
+  .hero .fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; text-align:center; padding:20px; font-size:40px; font-weight:800; background:linear-gradient(135deg,#3a1c71,#b91d3a,#e50914); }
+  .hero .shade { position:absolute; inset:0; background:linear-gradient(to top, rgba(20,20,20,.95) 0%, rgba(20,20,20,.2) 45%, transparent 70%); }
+  .hero .cap { position:absolute; left:26px; right:26px; bottom:22px; }
+  .hero .title { font-size:40px; font-weight:800; text-shadow:0 2px 10px rgba(0,0,0,.6); }
+  .hero .meta { color:#d2d2d2; font-size:14px; margin-top:8px; }
+
+  .actions { display:flex; gap:12px; margin:18px 0 26px; flex-wrap:wrap; }
+  .actions .play { background:#fff; color:#000; border:none; border-radius:5px; padding:12px 26px; font-size:16px; font-weight:700; cursor:pointer; }
+  .actions .add { background:rgba(109,109,110,.5); color:#fff; border:none; border-radius:5px; padding:12px 22px; font-size:16px; font-weight:600; cursor:pointer; }
+
+  h2 { font-size:20px; margin:26px 0 10px; }
+  .trama { font-size:17px; line-height:1.6; color:#e5e5e5; }
+  .trama em { color:#b3b3b3; }
+
+  .guests { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+  .guests .g { background:#2a2a2a; border-radius:20px; padding:8px 14px; font-size:14px; }
+
+  .backhome { margin-top:30px; }
+  .backhome a { color:#8a8a8a; font-size:13px; text-decoration:none; }
+
+  .card.rtl .trama, .card.rtl h2 { direction:rtl; text-align:right; }
+
+  @media (max-width:600px){
+    .hero .title { font-size:28px; }
+    .top { padding:14px 16px; }
+    .wrap { padding:0 14px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="logo" href="index.html">NETFLIX</a>
+  <select id="lang" class="lang">
+    <option value="it">Italiano</option>
+    <option value="es">Español</option>
+    <option value="en">English</option>
+    <option value="nl">Nederlands</option>
+    <option value="fa">فارسی</option>
+  </select>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="fallback" id="heroFallback"></div>
+    <img id="heroImg" alt="" style="display:none">
+    <div class="shade"></div>
+    <div class="cap">
+      <div class="title" id="ftitle"></div>
+      <div class="meta" id="fmeta"></div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="play" id="btnPlay">&#9654;&nbsp; <span id="lblPlay">Riproduci</span></button>
+    <button class="add">+&nbsp; <span id="lblList">La mia lista</span></button>
+  </div>
+
+  <h2 id="lblTrama">Trama</h2>
+  <div class="trama" id="trama"></div>
+
+  <h2 id="lblTable">Al tavolo</h2>
+  <div class="guests" id="guests"></div>
+
+  <div class="backhome"><a href="index.html" id="backlink">&larr; Torna alla home</a></div>
+</div>
+
+<script>
+const TABLES = [
+  { n:"01", film:"Encanto", guests:["Francesca Serpa","Giuliana Verrone","Sabina Cancellara","Letizia Lambertini","Domenico Lambertini","Enrico Benitez","Enrique Benitez","Jacopo Cruz","Gina Garbich","Dalmiro Cruz","Marvin Cruz"] },
+  { n:"02", film:"Fast Five", guests:["Alfred Cruz","Camilla Cruz Ganuza","Monica Ganuza","Victoria Cruz Ganuza","Victor Manuel Ganuza","Rosario Benitez","Gloria Tajada","Amilcar Edgar Ganuza","Edgar Ganuza","Sara Cruz Ganuza","Abuela Jimenez"] },
+  { n:"03", film:"La bella e la bestia", sposi:true, guests:["Michele Linardi","Monica Jimenez"] },
+  { n:"04", film:"Il Gladiatore", guests:["Eliseo Leiva Urbina","Milexa Rivas","Alejandrito Rivas","Andreita Perez","Amica Milexa Rivas","Enrique Rivas","Berti Rivas","Santa Antonia Sapienza","Luigi Linardi"] },
+  { n:"05", film:"Il Signore degli Anelli - Le due torri", guests:["Manuel Micozzi","Beatrice Micozzi","Martina Micozzi","Vittoria Jora","Oxana Jora","Signora Gubinelli","Matteo Gubinelli","Gian Luca Mazzocchi","Michela Mazzocchi"] },
+  { n:"06", film:"Campeonex", guests:["Bouki Novia Javier Soria","Javier Soria","Alex Torres","Paco Soria","Maria del Mar Sapienza","Sandra Soria","Novio Sandra Soria","Laritza Yanez","Ana Lazo","Esther Pietrafusa","Nicola Pietrafusa"] },
+  { n:"07", film:"Campeones", guests:["Jeremy Sapienza","Roberto Grillo","Sergio Sapienza","Andrea Torres","Josè David Sapienza","Enzo Sapienza","Yaiza Sepulcre","Federica Sapienza","Matteo Sapienza","Alfredo Linardi","Salvatore Bertell"] },
+  { n:"08", film:"Mrs. Doubtfire", guests:["Matilde Scarimboli","Susanna Servi","Tommaso Scarimboli","Nicola Scarimboli","Rosaria Linardi","Franco Miceli","Maria Linardi","Daniela Linardi","Fausto Linardi"] },
+  { n:"09", film:"Sicilia Express", guests:["Giovanni Barletta","Rosalia Zappalà","Massimo Sapienza","Maria Josè Sanchez","Juan Torres","Giovanni Sapienza","Antonia Domene","Piera Grillo","Carmelo Grillo","Claudio Sapienza","Anna Maria Barletta"] },
+  { n:"10", film:"Coco", guests:["Luis Alvarado","Karla Alvarado","Gabriel Jimenez","Mauricio Jimenez","Elsa Benitez","Darlyn Benitez","Hazel Alvarado","Denis Alvarado","Daniel Alvarado","Cleo Benitez","Bebe Alvarado-benitez cleo"] },
+  { n:"11", film:"Boris - Il Film", guests:["Kieran Haward","Annalisa Bearzatto","Annalisa Bonomo","Marco Fraolini","Daniele Donnarumma","Alessandra Chirulli","Marco Dionisi","Moglie Marco Dionisi","Fidanzata Edoardo Dionisi","Edoardo Dionisi","Alessandro Dionisi"] },
+  { n:"12", film:"Sister Act", guests:["Moglie Sassi","Giuseppe Sassi","Gennaro Castaldo","Moglie Castaldo","Giovanni Carosati","Moglie Carosati","Moglie Soldini","Stefano Soldini","Gianluca De Santis","Moglie De Santis","Marito Fiori","Paola Fiori"] },
+  { n:"13", film:"Notte prima degli esami", guests:["Mariadele Borrelli","Marco Cacciatori","Vittoria Cacciatori","Silvia Sig.ra Cacciatori","Andrea Alessandro","Valentina Russo","Giulia Pascali","Pierre Pascali","Sofia Alessandro"] },
+  { n:"14", film:"The Accountant", guests:["Caterina Marinucci","Maurizio Bonanni","Claudia Fioretti","Riccardo Rosignoli","Manuele Luchetta","Compagno Vitale","Nadia Vitale","Erminia Matteucci","Tiziana Funcello","Massimo D'Alessandro","Maria Teresa Pilloni"] },
+  { n:"15", film:"Tifosi", guests:["Lavinia Di Santi","Guido Di Santi","Damiano Di Santi","Melissa Di Santi","Gaetano Cutaia","Arianna Carletti","Danilo Morisco","Cristina Yohou","Simone Bartoloni","Luca Romaniello","Paola Tognetti"] },
+  { n:"16", film:"Ready Player One", guests:["Daniel Conti","Compagna Tortella","Anton Tortella","Compagna Tietto","Luca Tietto","Lorenzo Sassara","Francesco Proietti","Compagna Proietti"] },
+  { n:"17", film:"Gli Incredibili", guests:["Flavia Tunno","Simone Campanelli","Alessio Campanelli","Filippo Campanelli","Leonardo Paciotti","Francesca Gherardi","Gabriele Paciotti","Simone Paciotti","Edoardo Paciotti","Andrea Campanelli"] },
+  { n:"18", film:"Gran Torino", guests:["Gloria De Benitez","Edwin Benitez","Alba Bottai","Ivano Baldini","Giorgio Baldini","Rossella Baldini","Moglie Renato Garage","Renato Garage","Alessandro Garage","Sig.ra Alessandro Garage"] }
+];
+
+const TITLES = {
+  "01": { fa:"انکانتو" },
+  "02": { it:"Fast & Furious 5", es:"Fast & Furious 5", nl:"Fast & Furious 5", fa:"سریع و خشمگین ۵" },
+  "03": { es:"La Bella y la Bestia", en:"Beauty and the Beast", nl:"Belle en het Beest", fa:"دیو و دلبر" },
+  "04": { es:"Gladiator", en:"Gladiator", nl:"Gladiator", fa:"گلادیاتور" },
+  "05": { es:"El Señor de los Anillos - Las Dos Torres", en:"The Lord of the Rings - The Two Towers", nl:"In de Ban van de Ring - De Twee Torens", fa:"ارباب حلقه‌ها - دو برج" },
+  "06": { fa:"کامپیونکس" },
+  "07": { en:"Champions", fa:"قهرمانان" },
+  "08": { fa:"خانم داوتفایر" },
+  "10": { fa:"کوکو" },
+  "14": { fa:"حسابدار" },
+  "16": { fa:"بازیکن شماره یک آماده" },
+  "17": { es:"Los Increíbles", en:"The Incredibles", nl:"De Incredibles", fa:"شگفت‌انگیزان" },
+  "18": { fa:"گرن تورینو" }
+};
+
+// trame per tavolo (aggiungerne una per ogni n)
+const TRAME = {
+  "02": {
+    meta: "2027 · TOP 10 · Azione, Commedia, Famiglia · 99% compatibile con te",
+    testo: "Tutto parte da <b>Prima Porta</b>, quartier generale di una crew che Roma non era pronta a incontrare. Al volante della <b>500X</b> — più chilometri di un taxi di Termini — c'è lei, <b>Monica</b>: mani salde, sguardo dritto, nessun tornante le fa paura. Al suo fianco Alfred, e dietro la squadra al completo: tre bambine scatenate, <b>Sara, Victoria e Camilla</b>, ed <b>Edgar</b>, il fratello di Monica, il cognato che controlla lo specchietto per tutti. Tra la Flaminia presa per un soffio, parcheggi impossibili a Trastevere e merende consumate a 90 all'ora sul Lungotevere, questa famiglia insegue una cosa sola: restare unita. Perché alla fine, come in ogni grande corsa, non conta quanto vai veloce — conta <b>con chi corri</b>. E la strada di casa porta sempre a Prima Porta.<br><br><em>Nel ruolo da protagonista: una 500X che merita il suo posto nei titoli di coda.</em>"
+  }
+};
+
+const UI = {
+  it:{ trama:"Trama", table:"Al tavolo", play:"Riproduci", list:"La mia lista", back:"← Torna alla home", soon:"Trama in arrivo.", rtl:false },
+  es:{ trama:"Sinopsis", table:"En la mesa", play:"Reproducir", list:"Mi lista", back:"← Volver al inicio", soon:"Sinopsis próximamente.", rtl:false },
+  en:{ trama:"Synopsis", table:"At this table", play:"Play", list:"My List", back:"← Back to home", soon:"Synopsis coming soon.", rtl:false },
+  nl:{ trama:"Verhaal", table:"Aan tafel", play:"Afspelen", list:"Mijn lijst", back:"← Terug naar home", soon:"Verhaal komt eraan.", rtl:false },
+  fa:{ trama:"خلاصه", table:"سر این میز", play:"پخش", list:"فهرست من", back:"→ بازگشت به خانه", soon:"خلاصه به‌زودی.", rtl:true }
+};
+
+const EXT = ["jpg","jpeg","png","webp","JPG","PNG"];
+let LANG = localStorage.getItem("lang") || "it";
+if (!UI[LANG]) LANG = "it";
+
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function filmTitle(tab){ const m=TITLES[tab.n]; return (m&&m[LANG])||tab.film; }
+function getN(){ const p=new URLSearchParams(location.search); return (p.get("n")||"02"); }
+
+function render(){
+  const n = getN();
+  const tab = TABLES.find(t=>t.n===n) || TABLES[1];
+  const u = UI[LANG];
+
+  document.getElementById("ftitle").textContent = filmTitle(tab);
+  document.getElementById("heroFallback").textContent = filmTitle(tab);
+  document.getElementById("fmeta").innerHTML = (TRAME[tab.n] && TRAME[tab.n].meta) ? TRAME[tab.n].meta : "2027 · Film";
+  document.getElementById("lblPlay").textContent = u.play;
+  document.getElementById("lblList").textContent = u.list;
+  document.getElementById("lblTrama").textContent = u.trama;
+  document.getElementById("lblTable").textContent = u.table + " " + filmTitle(tab);
+  document.getElementById("backlink").textContent = u.back;
+  document.getElementById("lang").value = LANG;
+  document.documentElement.lang = LANG;
+
+  document.getElementById("trama").innerHTML = (TRAME[tab.n] && TRAME[tab.n].testo) ? TRAME[tab.n].testo : "<em>"+u.soon+"</em>";
+
+  const g = document.getElementById("guests");
+  g.innerHTML = "";
+  tab.guests.forEach(name => { const d=document.createElement("div"); d.className="g"; d.textContent=name; g.appendChild(d); });
+
+  // poster
+  const img = document.getElementById("heroImg");
+  let e = 0;
+  img.onload = () => { img.style.display="block"; };
+  img.onerror = () => { e++; if (e<EXT.length) img.src="posters/"+tab.n+"."+EXT[e]; };
+  img.src = "posters/"+tab.n+"."+EXT[0];
+}
+
+document.getElementById("lang").addEventListener("change", e => { LANG=e.target.value; localStorage.setItem("lang",LANG); render(); });
+document.getElementById("btnPlay").addEventListener("click", () => document.getElementById("lblTrama").scrollIntoView({behavior:"smooth"}));
+render();
+</script>
+</body>
+</html>

@@ -115,7 +115,7 @@ document.querySelectorAll(".row").forEach(row => {
     const num = String(idx+1).padStart(2,"0");
     const t = document.createElement("a");
     t.className = "tile";
-    t.href = "tavoli.html";
+    t.href = "scheda.html?n=" + num;
     t.innerHTML = '<div class="ph">'+NAMES[idx]+'</div>';
     const img = document.createElement("img");
     let e = 0;
