@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Film - Netflix</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background:#000; color:#fff;
+    font-family:"Helvetica Neue", Arial, sans-serif;
+    padding:20px;
+  }
+  #bar {
+    display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+    margin-bottom:20px; padding:14px 16px; background:#1c1c1c; border-radius:8px;
+  }
+  #bar button {
+    background:#e50914; color:#fff; border:none; border-radius:5px;
+    padding:11px 18px; font-size:15px; font-weight:700; cursor:pointer;
+  }
+  #bar button.alt { background:#333; }
+  #bar span { font-size:13px; color:#aaa; max-width:640px; }
+
+  #board { background:#0b0b0b; padding:28px 0 40px 45px; border-radius:4px; overflow:hidden; }
+
+  .nav {
+    display:flex; align-items:center; gap:22px; padding:2px 45px 24px 0;
+  }
+  .nav .logo { color:#e50914; font-weight:800; font-size:26px; letter-spacing:1px; }
+  .nav .menu { display:flex; gap:20px; align-items:center; }
+  .nav .menu a { color:#d2d2d2; font-size:14px; text-decoration:none; }
+  .nav .menu a.active { color:#fff; font-weight:700; }
+  .nav .right { margin-left:auto; display:flex; align-items:center; gap:20px; }
+  .nav .bell { position:relative; display:flex; }
+  .nav .badge {
+    position:absolute; top:-7px; right:-9px; background:#e50914; color:#fff;
+    font-size:10px; font-weight:700; border-radius:10px; padding:1px 5px; line-height:1.3;
+  }
+  .nav .avatar { width:30px; height:30px; border-radius:4px;
+    background:linear-gradient(135deg,#6aa0ff,#274a9c); }
+  .nav .caret { color:#fff; font-size:11px; }
+
+  .head {
+    display:flex; align-items:center; gap:16px; margin-bottom:22px;
+  }
+  .head h1 { font-size:40px; font-weight:700; }
+  .head .genres {
+    font-size:15px; border:1px solid #6d6d6e; border-radius:3px;
+    padding:6px 12px; color:#e5e5e5; display:flex; align-items:center; gap:8px;
+  }
+
+  .rowtitle {
+    font-size:22px; font-weight:700; color:#e5e5e5;
+    margin:0 0 10px 2px; outline:none;
+  }
+  .rowtitle:focus { color:#fff; }
+
+  .row { display:flex; gap:8px; margin-bottom:34px; }
+  .tile {
+    width:300px; aspect-ratio:16/9; background:#222;
+    border-radius:5px; overflow:hidden; flex:0 0 auto;
+    position:relative; cursor:pointer;
+  }
+  .tile img { width:100%; height:100%; object-fit:cover; display:block; }
+  .tile .ph {
+    position:absolute; inset:0; display:flex; align-items:center;
+    justify-content:center; color:#777; font-size:13px; text-align:center; padding:8px;
+  }
+</style>
+</head>
+<body>
+
+<div id="bar">
+  <button id="loadAll">1) Carica tutte le immagini (in ordine 01→18)</button>
+  <button id="download" class="alt">2) Scarica PNG</button>
+  <span>Seleziona tutte e 18 le immagini insieme: si sistemano da sole (nomi 01→18). Clicca una tile per sostituirla. Clicca il titolo di una riga per modificarlo.</span>
+</div>
+
+<input type="file" id="fileAll" accept="image/*" multiple style="display:none">
+<input type="file" id="fileOne" accept="image/*" style="display:none">
+
+<div id="board">
+  <div class="nav">
+    <div class="logo">NETFLIX</div>
+    <div class="menu">
+      <a href="#" class="active">Home</a>
+      <a href="#">Serie</a>
+      <a href="#">Film</a>
+      <a href="#">Giochi</a>
+      <a href="#">Nuovi e popolari</a>
+      <a href="#">La mia lista</a>
+      <a href="#">Sfoglia per lingua</a>
+    </div>
+    <div class="right">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>
+      <div class="bell">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 2a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V8a6 6 0 0 0-6-6zm0 20a2.5 2.5 0 0 0 2.4-2h-4.8A2.5 2.5 0 0 0 12 22z"/></svg>
+        <span class="badge">15</span>
+      </div>
+      <div class="avatar"></div>
+      <span class="caret">&#9662;</span>
+    </div>
+  </div>
+  <div class="head">
+    <h1>Film</h1>
+    <div class="genres">Generi &#9662;</div>
+  </div>
+
+  <div class="rowtitle" contenteditable="true">I titoli pi&ugrave; visti</div>
+  <div class="row" data-count="5"></div>
+
+  <div class="rowtitle" contenteditable="true">Scelti per te oggi</div>
+  <div class="row" data-count="5"></div>
+
+  <div class="rowtitle" contenteditable="true">Pensiamo ti appassioneranno</div>
+  <div class="row" data-count="4"></div>
+
+  <div class="rowtitle" contenteditable="true">Popolari su Netflix</div>
+  <div class="row" data-count="4"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const NAMES = [
+  "Encanto","Fast Five","La bella e la bestia","Il Gladiatore","LOTR - Le due torri",
+  "Campeonex","Campeones","Mrs. Doubtfire","Sicilia Express","Coco",
+  "Boris Il Film","Sister Act","Notte prima degli esami","The Accountant",
+  "Tifosi","Ready Player One","Gli Incredibili","Gran Torino"
+];
+
+const tiles = [];
+let idx = 0;
+document.querySelectorAll(".row").forEach(row => {
+  const n = parseInt(row.dataset.count);
+  for (let k=0; k<n; k++) {
+    const t = document.createElement("div");
+    t.className = "tile";
+    t.innerHTML = '<div class="ph">'+NAMES[idx]+'</div>';
+    const myIndex = idx;
+    t.addEventListener("click", () => { currentOne = myIndex; document.getElementById("fileOne").click(); });
+    row.appendChild(t);
+    tiles.push(t);
+    idx++;
+  }
+});
+
+function setImage(tile, file) {
+  const reader = new FileReader();
+  reader.onload = e => { tile.innerHTML = '<img src="'+e.target.result+'">'; };
+  reader.readAsDataURL(file);
+}
+
+document.getElementById("loadAll").onclick = () => document.getElementById("fileAll").click();
+document.getElementById("fileAll").onchange = e => {
+  const files = Array.from(e.target.files).sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  files.forEach((f,i)=>{ if(i<tiles.length) setImage(tiles[i], f); });
+};
+
+let currentOne = null;
+document.getElementById("fileOne").onchange = e => {
+  if (currentOne!==null && e.target.files[0]) setImage(tiles[currentOne], e.target.files[0]);
+};
+
+document.getElementById("download").onclick = () => {
+  if (typeof html2canvas === "undefined") {
+    alert("Componente di download non caricato (serve connessione). In alternativa fai uno screenshot.");
+    return;
+  }
+  html2canvas(document.getElementById("board"), {backgroundColor:"#0b0b0b", scale:2}).then(canvas => {
+    const a = document.createElement("a");
+    a.download = "netflix_film.png";
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+  });
+};
+</script>
+</body>
+</html>

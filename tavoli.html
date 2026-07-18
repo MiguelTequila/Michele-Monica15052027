@@ -10,18 +10,21 @@
     background:#000; color:#fff; min-height:100vh;
     font-family:"Helvetica Neue", Arial, sans-serif;
     display:flex; flex-direction:column; align-items:center;
-    padding:34px 18px 60px;
+    padding:24px 18px 60px;
   }
-  .logo { color:#e50914; font-weight:800; font-size:30px; letter-spacing:1px; text-decoration:none; }
-  h1 { font-size:34px; font-weight:700; margin-top:30px; text-align:center; }
+  .top { width:100%; max-width:760px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { color:#e50914; font-weight:800; font-size:28px; letter-spacing:1px; text-decoration:none; }
+  .lang { background:#141414; color:#fff; border:1px solid #6d6d6e; border-radius:4px; padding:8px 10px; font-size:14px; }
+
+  h1 { font-size:34px; font-weight:700; margin-top:26px; text-align:center; }
   .sub { color:#b3b3b3; margin-top:8px; font-size:15px; text-align:center; }
 
-  .searchbox { display:flex; gap:10px; margin-top:32px; width:100%; max-width:520px; }
+  .searchbox { display:flex; gap:10px; margin-top:30px; width:100%; max-width:520px; }
   .searchbox input { flex:1; padding:16px 18px; font-size:17px; border:none; border-radius:6px; background:#2a2a2a; color:#fff; outline:none; }
   .searchbox input::placeholder { color:#8a8a8a; }
   .searchbox button { background:#e50914; color:#fff; border:none; border-radius:6px; padding:0 26px; font-size:17px; font-weight:700; cursor:pointer; }
 
-  #result { width:100%; max-width:760px; margin-top:32px; }
+  #result { width:100%; max-width:760px; margin-top:30px; }
   .card { background:#181818; border-radius:12px; overflow:hidden; box-shadow:0 12px 40px rgba(0,0,0,.6); }
   .poster { width:100%; aspect-ratio:16/9; background:#111; position:relative; }
   .poster img { width:100%; height:100%; object-fit:cover; display:block; position:relative; z-index:1; }
@@ -31,6 +34,8 @@
   .card .lead { color:#b3b3b3; font-size:14px; margin-top:14px; text-transform:uppercase; letter-spacing:1px; }
   .card .film { font-size:30px; font-weight:800; margin-top:4px; }
   .card .badge { display:inline-block; margin-top:14px; background:#e50914; color:#fff; font-size:13px; font-weight:700; padding:5px 12px; border-radius:4px; }
+  .card.rtl .body { direction:rtl; text-align:right; }
+  .card.rtl .film { direction:ltr; }
   .msg { text-align:center; color:#e5e5e5; font-size:17px; line-height:1.6; padding:22px; }
   .picklist { display:flex; flex-direction:column; gap:8px; }
   .picklist .p { background:#222; border:none; color:#fff; text-align:left; padding:15px 18px; border-radius:6px; font-size:16px; cursor:pointer; }
@@ -42,23 +47,33 @@
 </head>
 <body>
 
-<a class="logo" href="index.html">NETFLIX</a>
-<h1>Trova il tuo tavolo</h1>
+<div class="top">
+  <a class="logo" href="index.html">NETFLIX</a>
+  <select id="lang" class="lang">
+    <option value="it">Italiano</option>
+    <option value="es">Español</option>
+    <option value="en">English</option>
+    <option value="nl">Nederlands</option>
+    <option value="fa">فارسی</option>
+  </select>
+</div>
+
+<h1 id="title">Trova il tuo tavolo</h1>
 <div class="sub">Michele &amp; Monica &middot; 15 Maggio 2027</div>
 
 <div class="searchbox">
-  <input id="q" type="text" placeholder="Scrivi il tuo nome e cognome..." autocomplete="off">
+  <input id="q" type="text" placeholder="" autocomplete="off">
   <button id="go">Cerca</button>
 </div>
 
 <div id="result"></div>
-<div class="backhome"><a href="index.html">&larr; Torna alla home</a></div>
+<div class="backhome"><a href="index.html" id="backlink">&larr; Torna alla home</a></div>
 
 <script>
 const TABLES = [
   { n:"01", film:"Encanto", guests:["Francesca Serpa","Giuliana Verrone","Sabina Cancellara","Letizia Lambertini","Domenico Lambertini","Enrico Benitez","Enrique Benitez","Jacopo Cruz","Gina Garbich","Dalmiro Cruz","Marvin Cruz"] },
   { n:"02", film:"Fast Five", guests:["Alfred Cruz","Camilla Cruz Ganuza","Monica Ganuza","Victoria Cruz Ganuza","Victor Manuel Ganuza","Rosario Benitez","Gloria Tajada","Amilcar Edgar Ganuza","Edgar Ganuza","Sara Cruz Ganuza","Abuela Jimenez"] },
-  { n:"03", film:"La bella e la bestia", note:"Tavolo degli Sposi", guests:["Michele Linardi","Monica Jimenez"] },
+  { n:"03", film:"La bella e la bestia", sposi:true, guests:["Michele Linardi","Monica Jimenez"] },
   { n:"04", film:"Il Gladiatore", guests:["Eliseo Leiva Urbina","Milexa Rivas","Alejandrito Rivas","Andreita Perez","Amica Milexa Rivas","Enrique Rivas","Berti Rivas","Santa Antonia Sapienza","Luigi Linardi"] },
   { n:"05", film:"Il Signore degli Anelli - Le due torri", guests:["Manuel Micozzi","Beatrice Micozzi","Martina Micozzi","Vittoria Jora","Oxana Jora","Signora Gubinelli","Matteo Gubinelli","Gian Luca Mazzocchi","Michela Mazzocchi"] },
   { n:"06", film:"Campeonex", guests:["Bouki Novia Javier Soria","Javier Soria","Alex Torres","Paco Soria","Maria del Mar Sapienza","Sandra Soria","Novio Sandra Soria","Laritza Yanez","Ana Lazo","Esther Pietrafusa","Nicola Pietrafusa"] },
@@ -76,67 +91,131 @@ const TABLES = [
   { n:"18", film:"Gran Torino", guests:["Gloria De Benitez","Edwin Benitez","Alba Bottai","Ivano Baldini","Giorgio Baldini","Rossella Baldini","Moglie Renato Garage","Renato Garage","Alessandro Garage","Sig.ra Alessandro Garage"] }
 ];
 
+// titoli localizzati (solo dove esiste una versione ufficiale; altrimenti resta l'originale)
+const TITLES = {
+  "01": { fa:"انکانتو" },
+  "02": { it:"Fast & Furious 5", es:"Fast & Furious 5", nl:"Fast & Furious 5", fa:"سریع و خشمگین ۵" },
+  "03": { es:"La Bella y la Bestia", en:"Beauty and the Beast", nl:"Belle en het Beest", fa:"دیو و دلبر" },
+  "04": { es:"Gladiator", en:"Gladiator", nl:"Gladiator", fa:"گلادیاتور" },
+  "05": { es:"El Señor de los Anillos - Las Dos Torres", en:"The Lord of the Rings - The Two Towers", nl:"In de Ban van de Ring - De Twee Torens", fa:"ارباب حلقه‌ها - دو برج" },
+  "06": { fa:"کامپیونکس" },
+  "07": { en:"Champions", fa:"قهرمانان" },
+  "08": { fa:"خانم داوتفایر" },
+  "10": { fa:"کوکو" },
+  "14": { fa:"حسابدار" },
+  "16": { fa:"بازیکن شماره یک آماده" },
+  "17": { es:"Los Increíbles", en:"The Incredibles", nl:"De Incredibles", fa:"شگفت‌انگیزان" },
+  "18": { fa:"گرن تورینو" }
+};
+function filmTitle(tab){ const m = TITLES[tab.n]; return (m && m[LANG]) || tab.film; }
+
+const I18N = {
+  it: { title:"Trova il tuo tavolo", ph:"Scrivi il tuo nome e cognome...", btn:"Cerca",
+        hello:n=>"Ciao "+n, lead:"Il tuo tavolo", sposi:"Tavolo degli Sposi",
+        notfound:q=>'Non abbiamo trovato <b>"'+q+'"</b>.<br>Prova solo con il cognome.',
+        pick:"Ci sono più persone con questo nome, scegli:", tword:"tavolo",
+        prompt:"Scrivi il tuo nome per cercare il tavolo.", back:"← Torna alla home", rtl:false },
+  es: { title:"Encuentra tu mesa", ph:"Escribe tu nombre y apellido...", btn:"Buscar",
+        hello:n=>"Hola "+n, lead:"Tu mesa", sposi:"Mesa de los novios",
+        notfound:q=>'No hemos encontrado <b>"'+q+'"</b>.<br>Prueba solo con el apellido.',
+        pick:"Hay varias personas con este nombre, elige:", tword:"mesa",
+        prompt:"Escribe tu nombre para buscar la mesa.", back:"← Volver al inicio", rtl:false },
+  en: { title:"Find your table", ph:"Type your first and last name...", btn:"Search",
+        hello:n=>"Hi "+n, lead:"Your table", sposi:"Bride & Groom table",
+        notfound:q=>'We couldn\'t find <b>"'+q+'"</b>.<br>Try just the surname.',
+        pick:"There are several people with this name, choose:", tword:"table",
+        prompt:"Type your name to find your table.", back:"← Back to home", rtl:false },
+  nl: { title:"Vind je tafel", ph:"Typ je voor- en achternaam...", btn:"Zoeken",
+        hello:n=>"Hoi "+n, lead:"Jouw tafel", sposi:"Tafel van het bruidspaar",
+        notfound:q=>'We konden <b>"'+q+'"</b> niet vinden.<br>Probeer alleen de achternaam.',
+        pick:"Er zijn meerdere personen met deze naam, kies:", tword:"tafel",
+        prompt:"Typ je naam om je tafel te vinden.", back:"← Terug naar home", rtl:false },
+  fa: { title:"میز خود را پیدا کنید", ph:"نام و نام خانوادگی خود را بنویسید...", btn:"جستجو",
+        hello:n=>"سلام "+n, lead:"میز شما", sposi:"میز عروس و داماد",
+        notfound:q=>'<b>"'+q+'"</b> پیدا نشد.<br>فقط نام خانوادگی را امتحان کنید.',
+        pick:"چند نفر با این نام وجود دارد، انتخاب کنید:", tword:"میز",
+        prompt:"برای یافتن میز، نام خود را بنویسید.", back:"→ بازگشت به خانه", rtl:true }
+};
+
 const GUESTS = [];
 TABLES.forEach(t => t.guests.forEach(name => GUESTS.push({name, table:t})));
 const EXT = ["jpg","jpeg","png","webp","JPG","PNG"];
+
+let LANG = localStorage.getItem("lang") || "it";
+if (!I18N[LANG]) LANG = "it";
 
 function norm(s){
   return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
     .replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
 }
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 const res = document.getElementById("result");
+const T = () => I18N[LANG];
+
+function applyLang(){
+  const t = T();
+  document.getElementById("title").textContent = t.title;
+  document.getElementById("q").placeholder = t.ph;
+  document.getElementById("go").textContent = t.btn;
+  document.getElementById("backlink").textContent = t.back;
+  document.getElementById("lang").value = LANG;
+  if (document.getElementById("q").value.trim()) search();
+  else res.innerHTML = "";
+}
 
 function search(){
   const raw = document.getElementById("q").value;
   const q = norm(raw);
   res.innerHTML = "";
-  if (q.length < 2) { showMsg("Scrivi il tuo nome per cercare il tavolo."); return; }
+  if (q.length < 2) return;
   const words = q.split(" ");
   const matches = GUESTS.filter(g => { const nn = norm(g.name); return words.every(w => nn.includes(w)); });
-  if (matches.length === 0) {
-    showMsg("Non abbiamo trovato <b>\""+escapeHtml(raw)+"\"</b>.<br>Prova solo con il cognome, o controlla l'ortografia.");
-  } else if (matches.length === 1) {
-    showTable(matches[0]);
-  } else {
-    showPicker(matches);
-  }
+  if (matches.length === 0) showMsg(T().notfound(escapeHtml(raw)));
+  else if (matches.length === 1) showTable(matches[0]);
+  else showPicker(matches);
 }
 
 function showMsg(html){ res.innerHTML = '<div class="card"><div class="msg">'+html+'</div></div>'; }
 
 function showPicker(list){
-  let h = '<div class="card"><div class="body picklist"><div class="head">Ci sono pi&ugrave; persone con questo nome, scegli te:</div>';
-  list.forEach((g,i) => { h += '<button class="p" data-i="'+i+'">'+escapeHtml(g.name)+' <small>&middot; tavolo '+escapeHtml(g.table.film)+'</small></button>'; });
+  const t = T();
+  let h = '<div class="card"><div class="body picklist"><div class="head">'+t.pick+'</div>';
+  list.forEach((g,i) => { h += '<button class="p" data-i="'+i+'">'+escapeHtml(g.name)+' <small>&middot; '+t.tword+' '+escapeHtml(filmTitle(g.table))+'</small></button>'; });
   h += '</div></div>';
   res.innerHTML = h;
   res.querySelectorAll(".p").forEach(b => b.onclick = () => showTable(list[b.dataset.i]));
 }
 
 function showTable(g){
-  const t = g.table;
+  const t = T();
+  const tab = g.table;
   const pid = "p"+Math.random().toString(36).slice(2);
-  let h = '<div class="card"><div class="poster">';
-  h += '<div class="fallback">'+escapeHtml(t.film)+'</div>';
+  const ftitle = filmTitle(tab);
+  let h = '<div class="card'+(t.rtl?' rtl':'')+'"><div class="poster">';
+  h += '<div class="fallback">'+escapeHtml(ftitle)+'</div>';
   h += '<img id="'+pid+'" alt="" style="display:none">';
   h += '</div><div class="body">';
-  h += '<div class="guest">Ciao <b>'+escapeHtml(g.name)+'</b></div>';
-  h += '<div class="lead">Il tuo tavolo</div>';
-  h += '<div class="film">'+escapeHtml(t.film)+'</div>';
-  if (t.note) h += '<div class="badge">'+escapeHtml(t.note)+'</div>';
+  h += '<div class="guest">'+escapeHtml(t.hello(g.name))+'</div>';
+  h += '<div class="lead">'+t.lead+'</div>';
+  h += '<div class="film">'+escapeHtml(ftitle)+'</div>';
+  if (tab.sposi) h += '<div class="badge">'+t.sposi+'</div>';
   h += '</div></div>';
   res.innerHTML = h;
   const img = document.getElementById(pid);
   let e = 0;
   img.onload = () => { img.style.display = "block"; };
-  img.onerror = () => { e++; if (e < EXT.length) img.src = "posters/"+t.n+"."+EXT[e]; };
-  img.src = "posters/"+t.n+"."+EXT[0];
+  img.onerror = () => { e++; if (e < EXT.length) img.src = "posters/"+tab.n+"."+EXT[e]; };
+  img.src = "posters/"+tab.n+"."+EXT[0];
 }
-
-function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 document.getElementById("go").onclick = search;
 document.getElementById("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
+document.getElementById("lang").addEventListener("change", e => {
+  LANG = e.target.value; localStorage.setItem("lang", LANG); applyLang();
+});
+
+applyLang();
 </script>
 </body>
 </html>

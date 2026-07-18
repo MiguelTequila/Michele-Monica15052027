@@ -20,6 +20,7 @@
   .nav .bell { position:relative; display:flex; }
   .nav .badge { position:absolute; top:-7px; right:-9px; background:#e50914; color:#fff; font-size:10px; font-weight:700; border-radius:10px; padding:1px 5px; line-height:1.3; }
   .nav .avatar { width:30px; height:30px; border-radius:4px; background:linear-gradient(135deg,#6aa0ff,#274a9c); }
+  .nav .lang { background:#141414; color:#fff; border:1px solid #6d6d6e; border-radius:4px; padding:6px 8px; font-size:13px; }
   .nav .caret { color:#fff; font-size:11px; }
 
   .head { display:flex; align-items:center; gap:16px; margin-bottom:22px; }
@@ -55,13 +56,13 @@
   <div class="nav">
     <a href="index.html" class="logo">NETFLIX</a>
     <div class="menu">
-      <a href="index.html" class="active">Home</a>
-      <a href="#">Serie</a>
-      <a href="#">Film</a>
-      <a href="#">Giochi</a>
-      <a href="#">Nuovi e popolari</a>
-      <a href="#">La mia lista</a>
-      <a href="#">Sfoglia per lingua</a>
+      <a href="index.html" class="active" id="m_home">Home</a>
+      <a href="#" id="m_series">Serie</a>
+      <a href="#" id="m_film">Film</a>
+      <a href="#" id="m_games">Giochi</a>
+      <a href="#" id="m_new">Nuovi e popolari</a>
+      <a href="#" id="m_list">La mia lista</a>
+      <a href="#" id="m_browse">Sfoglia per lingua</a>
     </div>
     <div class="right">
       <a class="search" href="tavoli.html" title="Trova il tuo tavolo">
@@ -71,23 +72,30 @@
         <svg viewBox="0 0 24 24" width="22" height="22" fill="#fff"><path d="M12 2a6 6 0 0 0-6 6v4l-2 3v1h16v-1l-2-3V8a6 6 0 0 0-6-6zm0 20a2.5 2.5 0 0 0 2.4-2h-4.8A2.5 2.5 0 0 0 12 22z"/></svg>
         <span class="badge">15</span>
       </div>
+      <select id="lang" class="lang" title="Lingua">
+        <option value="it">Italiano</option>
+        <option value="es">Español</option>
+        <option value="en">English</option>
+        <option value="nl">Nederlands</option>
+        <option value="fa">فارسی</option>
+      </select>
       <div class="avatar"></div>
       <span class="caret">&#9662;</span>
     </div>
   </div>
 
-  <div class="head"><h1>Film</h1><div class="genres">Generi &#9662;</div></div>
+  <div class="head"><h1 id="h_film">Film</h1><div class="genres" id="h_genres">Generi &#9662;</div></div>
 
-  <div class="rowtitle">I titoli pi&ugrave; visti</div>
+  <div class="rowtitle" id="rt1">I titoli pi&ugrave; visti</div>
   <div class="row" data-count="5"></div>
 
-  <div class="rowtitle">Scelti per te oggi</div>
+  <div class="rowtitle" id="rt2">Scelti per te oggi</div>
   <div class="row" data-count="5"></div>
 
-  <div class="rowtitle">Pensiamo ti appassioneranno</div>
+  <div class="rowtitle" id="rt3">Pensiamo ti appassioneranno</div>
   <div class="row" data-count="4"></div>
 
-  <div class="rowtitle">Popolari su Netflix</div>
+  <div class="rowtitle" id="rt4">Popolari su Netflix</div>
   <div class="row" data-count="4"></div>
 </div>
 
@@ -117,6 +125,47 @@ document.querySelectorAll(".row").forEach(row => {
     row.appendChild(t);
     idx++;
   }
+});
+
+// ---- traduzioni interfaccia home ----
+const UI = {
+  it: { film:"Film", genres:"Generi", home:"Home", series:"Serie", games:"Giochi", newp:"Nuovi e popolari", mylist:"La mia lista", browse:"Sfoglia per lingua",
+        rt1:"I titoli più visti", rt2:"Scelti per te oggi", rt3:"Pensiamo ti appassioneranno", rt4:"Popolari su Netflix" },
+  es: { film:"Películas", genres:"Géneros", home:"Inicio", series:"Series", games:"Juegos", newp:"Novedades populares", mylist:"Mi lista", browse:"Explorar por idiomas",
+        rt1:"Los títulos más vistos", rt2:"Elegidos para ti hoy", rt3:"Creemos que te encantarán", rt4:"Populares en Netflix" },
+  en: { film:"Movies", genres:"Genres", home:"Home", series:"TV Shows", games:"Games", newp:"New & Popular", mylist:"My List", browse:"Browse by Languages",
+        rt1:"Most watched", rt2:"Chosen for you today", rt3:"We think you'll love these", rt4:"Popular on Netflix" },
+  nl: { film:"Films", genres:"Genres", home:"Home", series:"Series", games:"Games", newp:"Nieuw en populair", mylist:"Mijn lijst", browse:"Bladeren op taal",
+        rt1:"Meest bekeken", rt2:"Vandaag voor jou gekozen", rt3:"Dit vind je vast geweldig", rt4:"Populair op Netflix" },
+  fa: { film:"فیلم‌ها", genres:"ژانرها", home:"خانه", series:"سریال‌ها", games:"بازی‌ها", newp:"جدید و محبوب", mylist:"فهرست من", browse:"مرور بر اساس زبان",
+        rt1:"پربیننده‌ترین‌ها", rt2:"امروز برای شما", rt3:"فکر می‌کنیم عاشقشان می‌شوید", rt4:"محبوب در نتفلیکس" }
+};
+function applyUI(lang){
+  const u = UI[lang] || UI.it;
+  document.getElementById("h_film").textContent = u.film;
+  document.getElementById("h_genres").innerHTML = u.genres + " &#9662;";
+  document.getElementById("m_home").textContent = u.home;
+  document.getElementById("m_series").textContent = u.series;
+  document.getElementById("m_film").textContent = u.film;
+  document.getElementById("m_games").textContent = u.games;
+  document.getElementById("m_new").textContent = u.newp;
+  document.getElementById("m_list").textContent = u.mylist;
+  document.getElementById("m_browse").textContent = u.browse;
+  document.getElementById("rt1").textContent = u.rt1;
+  document.getElementById("rt2").textContent = u.rt2;
+  document.getElementById("rt3").textContent = u.rt3;
+  document.getElementById("rt4").textContent = u.rt4;
+  document.documentElement.lang = lang;
+}
+
+const langSel = document.getElementById("lang");
+let curLang = localStorage.getItem("lang") || "it";
+if (!UI[curLang]) curLang = "it";
+langSel.value = curLang;
+applyUI(curLang);
+langSel.addEventListener("change", e => {
+  localStorage.setItem("lang", e.target.value);
+  applyUI(e.target.value);
 });
 </script>
 </body>
